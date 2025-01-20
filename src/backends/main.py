@@ -20,12 +20,13 @@ app = FastAPI(
 
 # Configure CORS settings
 origins = [
-    "http://localhost:3000",
-    # "https://your-web-ui.com",
+    "*",  # to whitelist any url, REMOVE THIS FOR PRODUCTION!!!
+    # "http://localhost:3000", # for dev
+    # "https://your-web-ui.com", # for prod
 ]
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=origins,  # or use "*" to whitelist any url
+    allow_origins=origins,
     # allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
