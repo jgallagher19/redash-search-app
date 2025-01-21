@@ -3,9 +3,9 @@ name: "Manual Tauri Release"
 on:
   workflow_dispatch:
     inputs:
-      tag_name:
-        description: "Tag name for the release"
-        required: true
+      # tag_name:
+      #   description: "Tag name for the release"
+      #   required: true
       release_name:
         description: "Release title"
         required: true
