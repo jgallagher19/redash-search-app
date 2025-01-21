@@ -1,0 +1,168 @@
+name: "Manual Tauri Release"
+
+on:
+  workflow_dispatch:
+    inputs:
+      tag_name:
+        description: "Tag name for the release"
+        required: true
+      release_name:
+        description: "Release title"
+        required: true
+      release_type:
+        description: "Type of release (draft, private, public)"
+        required: true
+        default: "draft"
+      release_notes:
+        description: "Release notes"
+        required: false
+
+jobs:
+  create_release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    outputs:
+      release_upload_url: ${{ steps.create_release.outputs.upload_url }}
+    steps:
+      - name: Create a release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.tag_name }}
+          release_name: ${{ github.event.inputs.release_name }}
+          body: ${{ github.event.inputs.release_notes }}
+          draft: ${{ github.event.inputs.release_type == 'draft' }} # not visible to the public
+          prerelease: ${{ github.event.inputs.release_type == 'private' }} # visible only to collaborators
+
+  build:
+    name: Build and Upload Artifacts
+    needs: create_release
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest] # builds for each platform, in seperate vm's, in this order
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: "18"
+
+        - uses: actions/checkout@v3
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: "3.12"
+
+      - name: Set up pip for Python
+        run: |
+          python --version
+          pip --version || python -m ensurepip --upgrade
+          python -m pip install --upgrade pip
+
+      - name: Install dependencies
+        run: |
+          corepack enable
+          corepack prepare pnpm@latest --activate
+          pnpm install-reqs
+
+      - name: Build icons
+        run: pnpm build:icons
+
+      - name: Build Python sidecar
+        run: |
+          if [[ "${{ runner.os }}" == "Linux" ]]; then
+            pnpm build:sidecar-linux
+          elif [[ "${{ runner.os }}" == "macOS" ]]; then
+            pnpm build:sidecar-macos
+          elif [[ "${{ runner.os }}" == "Windows" ]]; then
+            pnpm build:sidecar-winos
+          fi
+
+      - name: Build Next.js
+        run: pnpm run next build
+
+      - name: Set up Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          profile: minimal
+          toolchain: stable # You can also specify a version, e.g., "1.72.0"
+          override: true
+
+      - name: Build Tauri app
+        run: pnpm tauri build
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v3
+        with:
+          name: ${{ runner.os }}-artifact
+          path: |
+            if [[ "${{ runner.os }}" == "Windows" ]]; then
+              echo "src-tauri/target/release/bundle/nsis/tauri-python-sidecar_0.1.0_x64_Windows-setup.zip"
+            else
+              echo "src-tauri/target/release/bundle/"
+            fi
+
+  upload_assets:
+    name: Upload Assets to Release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download Linux artifact
+        if: always()
+        uses: actions/download-artifact@v3
+        with:
+          name: ubuntu-latest-artifact
+          path: ./artifacts/ubuntu
+
+      - name: Download macOS artifact
+        if: always()
+        uses: actions/download-artifact@v3
+        with:
+          name: macos-latest-artifact
+          path: ./artifacts/macos
+
+      - name: Download Windows artifact
+        if: always()
+        uses: actions/download-artifact@v3
+        with:
+          name: windows-latest-artifact
+          path: ./artifacts/windows
+
+      - name: Upload Linux asset
+        if: always()
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+          asset_path: ./artifacts/ubuntu/tauri-python-sidecar_${{ github.event.inputs.tag_name }}_x86_x64_Linux-setup.AppImage
+          asset_name: tauri-python-sidecar_${{ github.event.inputs.tag_name }}_x86_x64_Linux-setup.AppImage
+          asset_content_type: application/octet-stream
+
+      - name: Upload macOS asset
+        if: always()
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+          asset_path: ./artifacts/macos/tauri-python-sidecar_${{ github.event.inputs.tag_name }}_x86_x64_macOS-setup.dmg
+          asset_name: tauri-python-sidecar_${{ github.event.inputs.tag_name }}_x86_x64_macOS-setup.dmg
+          asset_content_type: application/octet-stream
+
+      - name: Upload Windows asset
+        if: always()
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ needs.create_release.outputs.release_upload_url }}
+          asset_path: ./artifacts/windows/tauri-python-sidecar_${{ github.event.inputs.tag_name }}_x86_x64_Windows-setup.zip
+          asset_name: tauri-python-sidecar_${{ github.event.inputs.tag_name }}_x86_x64_Windows-setup.zip
+          asset_content_type: application/octet-stream
