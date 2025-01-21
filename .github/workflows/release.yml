@@ -30,7 +30,7 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          tag_name: ${{ github.ref_name }}
+          tag_name: ${{ github.ref }}
           release_name: ${{ github.event.inputs.release_name }}
           body: ${{ github.event.inputs.release_notes }}
           draft: ${{ github.event.inputs.release_type == 'draft' }} # not visible to the public
@@ -142,8 +142,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/ubuntu/tauri-python-sidecar_${{ github.ref }}_x86_x64_Linux-setup.AppImage
-          asset_name: tauri-python-sidecar_${{ github.ref }}_x86_x64_Linux-setup.AppImage
+          asset_path: ./artifacts/ubuntu/tauri-python-sidecar_${{ github.ref_name }}_x86_x64_Linux-setup.AppImage
+          asset_name: tauri-python-sidecar_${{ github.ref_name }}_x86_x64_Linux-setup.AppImage
           asset_content_type: application/octet-stream
 
       - name: Upload macOS asset
@@ -153,8 +153,8 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/macos/tauri-python-sidecar_${{ github.ref }}_x86_x64_macOS-setup.dmg
-          asset_name: tauri-python-sidecar_${{ github.ref }}_x86_x64_macOS-setup.dmg
+          asset_path: ./artifacts/macos/tauri-python-sidecar_${{ github.ref_name }}_x86_x64_macOS-setup.dmg
+          asset_name: tauri-python-sidecar_${{ github.ref_name }}_x86_x64_macOS-setup.dmg
           asset_content_type: application/octet-stream
 
       - name: Upload Windows asset
@@ -164,6 +164,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/windows/tauri-python-sidecar_${{ github.ref }}_x86_x64_Windows-setup.zip
-          asset_name: tauri-python-sidecar_${{ github.ref }}_x86_x64_Windows-setup.zip
+          asset_path: ./artifacts/windows/tauri-python-sidecar_${{ github.ref_name }}_x86_x64_Windows-setup.zip
+          asset_name: tauri-python-sidecar_${{ github.ref_name }}_x86_x64_Windows-setup.zip
           asset_content_type: application/octet-stream
