@@ -137,21 +137,21 @@ jobs:
         if: always()
         uses: actions/download-artifact@v3
         with:
-          name: ubuntu-latest-artifact
+          name: ${{ runner.os }}-artifact
           path: ./artifacts/ubuntu
 
       - name: Download macOS artifact
         if: always()
         uses: actions/download-artifact@v3
         with:
-          name: macos-latest-artifact
+          name: ${{ runner.os }}-artifact
           path: ./artifacts/macos
 
       - name: Download Windows artifact
         if: always()
         uses: actions/download-artifact@v3
         with:
-          name: windows-latest-artifact
+          name: ${{ runner.os }}-artifact
           path: ./artifacts/windows
 
       - name: Upload Linux asset
