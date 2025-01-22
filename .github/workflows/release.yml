@@ -91,6 +91,12 @@ jobs:
       # - name: Build Next.js
       #   run: pnpm next build
 
+      - name: Install system dependencies for Linux
+        if: runner.os == 'linux'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y gio-2.0
+
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
         with:
@@ -107,7 +113,7 @@ jobs:
           name: ${{ runner.os }}-artifact
           path: |
             if [[ "${{ runner.os }}" == "Windows" ]]; then
-              echo "src-tauri/target/release/bundle/nsis/tauri-python-sidecar_0.1.0_x64_Windows-setup.zip"
+              echo "src-tauri/target/release/bundle/nsis/"
             else
               echo "src-tauri/target/release/bundle/"
             fi
