@@ -23,14 +23,11 @@
     "longDescription": "",
     "resources": [],
     "windows": {
-      "fileName": "tauri-python-sidecar-installer.exe",
-      "targets": ["nsis"],
       "certificateThumbprint": null,
       "digestAlgorithm": "sha256",
       "timestampUrl": ""
     },
     "macOS": {
-      "fileName": "tauri-python-sidecar-installer.dmg",
       "entitlements": null,
       "exceptionDomain": "",
       "frameworks": [],
@@ -38,7 +35,6 @@
       "signingIdentity": null
     },
     "linux": {
-      "fileName": "tauri-python-sidecar-installer.deb",
       "deb": {
         "depends": []
       }
@@ -46,8 +42,7 @@
   },
   "productName": "tauri-python-sidecar",
   "mainBinaryName": "tauri-python-sidecar",
-  "version": "0.1.0",
-  "publisher": "OpenBrewAi",
+  "version": "$npm_package_version",
   "identifier": "com.openbrewai.obrew",
   "plugins": {},
   "app": {
