@@ -172,7 +172,9 @@ And the raw executable here:
 
 ## Deploy using Github Actions
 
-Fork this repo in order to access a manual trigger to build for each platform (Windows, MacOS, Linux) and upload a release. You can then modify the `release.yml` file to suit your specific app's build pipeline needs. Workflow permissions must be set to "Read and write". Any git tags created before a workflow existed will not be usable for that workflow.
+Fork this repo in order to access a manual trigger to build for each platform (Windows, MacOS, Linux) and upload a release.
+
+You can then modify the `release.yml` file to suit your specific app's build pipeline needs. Workflow permissions must be set to "Read and write". Any git tags created before a workflow existed will not be usable for that workflow. You must specify a tag to run from (not a branch name).
 
 Initiate the Workflow Manually:
 
