@@ -87,8 +87,9 @@ jobs:
             pnpm build:sidecar-winos
           fi
 
-      - name: Build Next.js
-        run: pnpm run next build
+      # Not needed since `pnpm tauri build` runs `pnpm next build` under the hood.
+      # - name: Build Next.js
+      #   run: pnpm next build
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1

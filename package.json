@@ -2,6 +2,7 @@
   "name": "example-tauri-v2-python-sidecar",
   "version": "0.1.0",
   "private": false,
+  "packageManager": "pnpm@9.15.4",
   "scripts": {
     "install-reqs": "pnpm install && pip3 install -r requirements.txt",
     "dev": "next dev",
@@ -9,7 +10,7 @@
     "build:sidecar-macos": "pyinstaller -c -F --clean --name main-x86_64-apple-darwin --distpath src-tauri/bin/api src/backends/main.py",
     "build:sidecar-linux": "pyinstaller -c -F --clean --name main-x86_64-unknown-linux-gnu --distpath src-tauri/bin/api src/backends/main.py",
     "build:icons": "pnpm tauri icon public/app-icon.png",
-    "build": "pnpm run build:sidecar-winos && next build",
+    "build": "next build",
     "tauri": "tauri",
     "export": "next export",
     "start": "next start",
