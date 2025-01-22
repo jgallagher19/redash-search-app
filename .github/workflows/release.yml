@@ -127,12 +127,18 @@ jobs:
             echo "artifact_path=src-tauri/target/release/bundle/" >> $GITHUB_ENV
           fi
 
+      - name: Debug artifact directory
+        shell: bash
+        run: |
+          echo "Contents of ${{ env.artifact_path }}:"
+          ls -la ${{ env.artifact_path }}
+
       # Zip all files/folders in env.artifact_path and put in /artifacts/{os}/
       - name: Zip assets
         shell: bash
         run: |
           mkdir -p ./artifacts/${{ matrix.os }}
-          zip -j ./artifacts/${{ matrix.os }}/${{ matrix.os }}-artifacts.zip ${{ env.artifact_path }}
+          zip -r ./artifacts/${{ matrix.os }}/${{ matrix.os }}-artifacts.zip ${{ env.artifact_path }}
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
@@ -173,7 +179,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/ubuntu/ubuntu-artifacts.zip # file location
+          asset_path: ./artifacts/ubuntu-latest/ubuntu-latest-artifacts.zip # file location
           asset_name: tauri-python-sidecar_linux-setup.zip # display name on release page (not file name)
           asset_content_type: application/zip
 
@@ -184,7 +190,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/macos/macos-artifacts.zip # file location
+          asset_path: ./artifacts/macos-latest/macos-latest-artifacts.zip # file location
           asset_name: tauri-python-sidecar_macos-setup.zip # display name on release page (not file name)
           asset_content_type: application/zip
 
@@ -195,6 +201,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/windows/windows-artifacts.zip # file location
+          asset_path: ./artifacts/windows-latest/windows-latest-artifacts.zip # file location
           asset_name: tauri-python-sidecar_windows-setup.zip # display name on release page (not file name)
           asset_content_type: application/zip
