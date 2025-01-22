@@ -96,6 +96,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y gio-2.0
+          sudo apt-get install libgtk-3-dev  # Debian/Ubuntu
 
       - name: Set up Rust
         uses: actions-rs/toolchain@v1
@@ -107,16 +108,19 @@ jobs:
       - name: Build Tauri app
         run: pnpm tauri build
 
+      - name: Determine artifact path
+        id: artifact_path
+        run: |
+          if [[ "${{ runner.os }}" == "Windows" ]]; then
+            echo "artifact_path=src-tauri/target/release/bundle/nsis/" >> $GITHUB_ENV
+          else
+            echo "artifact_path=src-tauri/target/release/bundle/" >> $GITHUB_ENV
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ runner.os }}-artifact
-          path: |
-            if [[ "${{ runner.os }}" == "Windows" ]]; then
-              echo "src-tauri/target/release/bundle/nsis/"
-            else
-              echo "src-tauri/target/release/bundle/"
-            fi
+          path: ${{ env.artifact_path }}
 
   upload_assets:
     name: Upload Assets to Release
