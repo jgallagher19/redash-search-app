@@ -117,28 +117,21 @@ jobs:
         shell: bash
         run: pnpm tauri build
 
-      - name: Set artifact path
-        id: artifact_path
-        shell: bash
+      # Zip all files/folders in /bundle/nsis and put in /artifacts/windows-latest/
+      - name: Zip assets (Windows)
+        shell: pwsh
+        if: startsWith(runner.os, 'Windows')
         run: |
-          if [[ "${{ runner.os }}" == "Windows" ]]; then
-            echo "artifact_path=src-tauri/target/release/bundle/nsis/" >> $GITHUB_ENV
-          else
-            echo "artifact_path=src-tauri/target/release/bundle/" >> $GITHUB_ENV
-          fi
+          mkdir -p ./artifacts/windows-latest
+          powershell Compress-Archive -Path src-tauri/target/release/bundle/nsis/* -DestinationPath ./artifacts/windows-latest/windows-latest-artifacts.zip
 
-      - name: Debug artifact directory
-        shell: bash
-        run: |
-          echo "Contents of ${{ env.artifact_path }}:"
-          ls -la ${{ env.artifact_path }}
-
-      # Zip all files/folders in env.artifact_path and put in /artifacts/{os}/
-      - name: Zip assets
+      # Zip all files/folders in /bundle and put in /artifacts/{os}/
+      - name: Zip assets (Other)
+        if: runner.os != 'Windows'
         shell: bash
         run: |
           mkdir -p ./artifacts/${{ matrix.os }}
-          zip -r ./artifacts/${{ matrix.os }}/${{ matrix.os }}-artifacts.zip ${{ env.artifact_path }}
+          zip -r ./artifacts/${{ matrix.os }}/${{ matrix.os }}-artifacts.zip src-tauri/target/release/bundle/*
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
