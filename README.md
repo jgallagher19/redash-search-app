@@ -2,6 +2,8 @@
 
 A native app built with Tauri version 2 that spawns a Python sub-process (sidecar) which starts a FastAPI server.
 
+<div align="center">
+
 [Download the example app and try out](https://github.com/dieharders/example-tauri-v2-python-server-sidecar/releases)
 
 ![Python](https://img.shields.io/badge/-Python-000?&logo=Python)
@@ -12,14 +14,29 @@ A native app built with Tauri version 2 that spawns a Python sub-process (sideca
 ![NextJS](https://img.shields.io/badge/-NextJS-000?&logo=nextdotjs)
 ![Tauri](https://img.shields.io/badge/-Tauri-000?&logo=Tauri)
 
+</div>
+
+![logo](extras/sidecar-logo.png "python sidecar logo")
+
+## Table of Contents
+
+- [Introduction](#introduction)
+- [How It Works](#how-it-works)
+- [Features](#features)
+- [Project Structure](#project-structure)
+- [Getting Started](#getting-started)
+- [Deploy using your machine](#deploy-using-your-machine)
+- [Deploy using Github Actions](#deploy-using-github-actions)
+- [Issues](#issues)
+- [Todo's](#todos)
+- [Learn More](#learn-more)
+
+## Introduction
+
 > [!NOTE]
 >
 > <strong>Tauri v1 example also available:
 > <a href="https://github.com/dieharders/example-tauri-python-server-sidecar" style="color: #228be6">example-tauri-python-server-sidecar</a></strong>
-
-![logo](extras/sidecar-logo.png "python sidecar logo")
-
-## Introduction
 
 This example app uses Next.js as the frontend and Python (FastAPI) as the backend. Tauri is a Rust framework that orchestrates the frontend and backend(s) into a native app experience.
 
@@ -106,11 +123,11 @@ Run the app in development mode:
 pnpm tauri dev
 ```
 
-### Build
+## Deploy using your machine
 
-#### Compile python sidecar
+### 1. Compile Python sidecar
 
-Run this at least once before running `pnpm tauri dev` and each time you make changes to your python code. This command is also called by `pnpm tauri build`:
+Run this at least once before running `pnpm tauri dev` or `pnpm tauri build` and each time you make changes to your python code:
 
 ```bash
 pnpm build:sidecar-winos
@@ -128,15 +145,20 @@ pip install -U pyinstaller
 
 A note on compiling Python exe (the -F flag bundles everything into one .exe). You won't need to run this manually each build, I have included it in the build scripts.
 
----
+### 2. Build Next.js (optional)
 
-#### Build for production
-
-Build the production app for a specific OS:
+Build the static html files that tauri will serve as your front-end.
 
 ```bash
-# Uses `pnpm build:sidecar-winos` by default
-# Modify script for your target OS
+pnpm run build
+```
+
+### 3. Build tauri (and Next.js)
+
+Tauri will run the "build" script (which does the same as the previous step) before it builds the tauri app, see `tauri.conf.json` file. You can edit what script it runs in the `beforeBuildCommand`.
+Build the production app on your machine for a specific OS:
+
+```bash
 pnpm tauri build
 ```
 
@@ -148,7 +170,21 @@ And the raw executable here:
 
 - `<project-dir>\src-tauri\target\release`
 
-## Issue's ?
+## Deploy using Github Actions
+
+Fork this repo in order to access a manual trigger to build for each platform (Windows, MacOS, Linux) and upload a release. You can then modify the `release.yml` file to suit your specific app's build pipeline needs. Workflow permissions must be set to "Read and write". Any git tags created before a workflow existed will not be usable for that workflow.
+
+Initiate the Workflow Manually:
+
+1. Navigate to the "Actions" tab in your GitHub repository.
+2. Select the "Manual Tauri Release" workflow.
+3. Click on "Run workflow" and provide the necessary inputs:
+
+   - release_name: The title of the release.
+   - release_notes (optional): Notes or changelog for the release.
+   - release_type: ("draft", "public", "private")
+
+## Issues?
 
 - "Failed to fetch" error: In `src/backends/main.py` CORS expects your UI is running on localhost:3000. If not, add your url to the `origins = []` array or set:
 
