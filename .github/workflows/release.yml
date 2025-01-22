@@ -133,12 +133,12 @@ jobs:
           mkdir -p ./artifacts/macos-latest
           zip -r ./artifacts/${{ matrix.os }}/${{ matrix.os }}-artifacts.zip src-tauri/target/release/bundle/dmg/*
 
-      # Zip only .deb file /bundle/src-tauri/target/release/bundle/deb and put in /artifacts/linux-latest/
+      # Zip only .deb file /bundle/src-tauri/target/release/bundle/deb and put in /artifacts/ubuntu-latest/
       - name: Zip assets (Linux)
         shell: bash
         if: startsWith(runner.os, 'Linux')
         run: |
-          mkdir -p ./artifacts/linux-latest
+          mkdir -p ./artifacts/ubuntu-latest
           zip -r ./artifacts/${{ matrix.os }}/${{ matrix.os }}-artifacts.zip src-tauri/target/release/bundle/deb/*.deb
 
       - name: Upload artifact
