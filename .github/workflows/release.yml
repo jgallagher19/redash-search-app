@@ -130,7 +130,7 @@ jobs:
 
   upload_assets:
     name: Upload Assets to Release
-    needs: build
+    needs: create_release
     runs-on: ubuntu-latest
     steps:
       - name: Download Linux artifact
