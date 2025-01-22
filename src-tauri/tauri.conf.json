@@ -42,7 +42,6 @@
   },
   "productName": "tauri-python-sidecar",
   "mainBinaryName": "tauri-python-sidecar",
-  "version": "$npm_package_version",
   "identifier": "com.openbrewai.obrew",
   "plugins": {},
   "app": {
