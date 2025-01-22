@@ -63,18 +63,21 @@ jobs:
           python-version: "3.12"
 
       - name: Set up pip for Python
+        shell: bash
         run: |
           python --version
           pip --version || python -m ensurepip --upgrade
           python -m pip install --upgrade pip
 
       - name: Install dependencies
+        shell: bash
         run: |
           corepack enable
           corepack prepare pnpm@latest --activate
           pnpm install-reqs
 
       - name: Install system dependencies for Linux
+        shell: bash
         if: runner.os == 'linux'
         run: |
           sudo apt-get update
@@ -92,6 +95,7 @@ jobs:
           workspaces: "./src-tauri -> target"
 
       - name: Build icons
+        shell: bash
         run: pnpm build:icons
 
       - name: Build Python sidecar
@@ -110,6 +114,7 @@ jobs:
       #   run: pnpm next build
 
       - name: Build Tauri app
+        shell: bash
         run: pnpm tauri build
 
       - name: Set artifact path
@@ -122,11 +127,18 @@ jobs:
             echo "artifact_path=src-tauri/target/release/bundle/" >> $GITHUB_ENV
           fi
 
+      # Zip all files/folders in env.artifact_path and put in /artifacts/{os}/
+      - name: Zip assets
+        shell: bash
+        run: |
+          mkdir -p ./artifacts/${{ matrix.os }}
+          zip -j ./artifacts/${{ matrix.os }}/${{ matrix.os }}-artifacts.zip ${{ env.artifact_path }}
+
       - name: Upload artifact
         uses: actions/upload-artifact@v3
         with:
           name: ${{ matrix.os }}-artifact
-          path: ${{ env.artifact_path }}
+          path: ./artifacts/${{ matrix.os }}/${{ matrix.os }}-artifacts.zip # upload from
 
   upload_assets:
     name: Upload Assets to Release
@@ -154,35 +166,35 @@ jobs:
           name: windows-latest-artifact
           path: ./artifacts/windows
 
-      - name: Upload Linux asset
+      - name: Upload Linux asset archive
         if: always()
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/ubuntu/tauri-python-sidecar_${{ github.ref_name }}_x86_x64_Linux-setup.AppImage
-          asset_name: tauri-python-sidecar_${{ github.ref_name }}_x86_x64_Linux-setup.AppImage
-          asset_content_type: application/octet-stream
+          asset_path: ./artifacts/ubuntu/ubuntu-artifacts.zip # file location
+          asset_name: tauri-python-sidecar_linux-setup.zip # display name on release page (not file name)
+          asset_content_type: application/zip
 
-      - name: Upload macOS asset
+      - name: Upload macOS asset archive
         if: always()
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/macos/tauri-python-sidecar_${{ github.ref_name }}_x86_x64_macOS-setup.dmg
-          asset_name: tauri-python-sidecar_${{ github.ref_name }}_x86_x64_macOS-setup.dmg
-          asset_content_type: application/octet-stream
+          asset_path: ./artifacts/macos/macos-artifacts.zip # file location
+          asset_name: tauri-python-sidecar_macos-setup.zip # display name on release page (not file name)
+          asset_content_type: application/zip
 
-      - name: Upload Windows asset
+      - name: Upload Windows asset archive
         if: always()
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/windows/tauri-python-sidecar_${{ github.ref_name }}_x86_x64_Windows-setup.exe
-          asset_name: tauri-python-sidecar_${{ github.ref_name }}_x86_x64_Windows-setup.exe
-          asset_content_type: application/octet-stream
+          asset_path: ./artifacts/windows/windows-artifacts.zip # file location
+          asset_name: tauri-python-sidecar_windows-setup.zip # display name on release page (not file name)
+          asset_content_type: application/zip
