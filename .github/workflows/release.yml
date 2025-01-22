@@ -172,7 +172,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/ubuntu-latest/ubuntu-latest-artifacts.zip # file location
+          asset_path: ./artifacts/ubuntu/ubuntu-latest-artifacts.zip # file location
           asset_name: tauri-python-sidecar_linux-setup.zip # display name on release page (not file name)
           asset_content_type: application/zip
 
@@ -183,7 +183,7 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/macos-latest/macos-latest-artifacts.zip # file location
+          asset_path: ./artifacts/macos/macos-latest-artifacts.zip # file location
           asset_name: tauri-python-sidecar_macos-setup.zip # display name on release page (not file name)
           asset_content_type: application/zip
 
@@ -194,6 +194,6 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ needs.create_release.outputs.release_upload_url }}
-          asset_path: ./artifacts/windows-latest/windows-latest-artifacts.zip # file location
+          asset_path: ./artifacts/windows/windows-latest-artifacts.zip # file location
           asset_name: tauri-python-sidecar_windows-setup.zip # display name on release page (not file name)
           asset_content_type: application/zip
