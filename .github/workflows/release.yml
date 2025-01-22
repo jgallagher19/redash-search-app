@@ -77,6 +77,7 @@ jobs:
         run: pnpm build:icons
 
       - name: Build Python sidecar
+        shell: bash # ensure cross-platform compatibility with Bash syntax
         run: |
           if [[ "${{ runner.os }}" == "Linux" ]]; then
             pnpm build:sidecar-linux
