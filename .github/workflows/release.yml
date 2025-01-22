@@ -18,6 +18,7 @@ on:
         required: false
 
 jobs:
+  # Tauri example workflow - https://v2.tauri.app/distribute/pipelines/github/
   create_release:
     name: Create GitHub Release
     runs-on: ubuntu-latest
@@ -111,7 +112,7 @@ jobs:
       - name: Build Tauri app
         run: pnpm tauri build
 
-      - name: Determine artifact path
+      - name: Set artifact path
         id: artifact_path
         shell: bash
         run: |
@@ -119,6 +120,7 @@ jobs:
             echo "artifact_path=src-tauri/target/release/bundle/nsis/" >> $GITHUB_ENV
           else
             echo "artifact_path=src-tauri/target/release/bundle/" >> $GITHUB_ENV
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v3
