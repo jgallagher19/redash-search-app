@@ -198,6 +198,8 @@ app.add_middleware(
 
 ## Todo's
 
+- Example api endpoint that demonstrates handling file paths for `--add-data` files and using `sys._MEIPASS` to find the path relative to the production executable.
+
 - Pass parameters to the sidecar (like server port) via a frontend form.
 
 - Pass argument `--dev-sidecar` to `pnpm tauri dev` script that tells Tauri to run sidecars in "dev mode". This would allow for running the python code from the python interpreter installed on your machine rather than having to manually compile with `pnpm build:sidecar-[os]` each time you make changes to the Python code.
