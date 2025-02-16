@@ -71,11 +71,12 @@ jobs:
           pip --version || python -m ensurepip --upgrade
           python -m pip install --upgrade pip
 
-      - name: Install dependencies
+      # Note, pnpm version should match whats in package.json
+      - name: Install pnpm and dependencies
         shell: bash
         run: |
           corepack enable
-          corepack prepare pnpm@latest --activate
+          corepack prepare pnpm@9.15.4 --activate
           pnpm install-reqs
 
       - name: Install system dependencies for Linux
