@@ -112,13 +112,14 @@ jobs:
             pnpm build:sidecar-winos
           fi
 
-      # Not needed since `pnpm tauri build` runs `pnpm next build` under the hood.
-      # - name: Build Next.js
-      #   run: pnpm next build
-
+      # @TODO Use https://github.com/tauri-apps/tauri-action for better cross platform support
       - name: Build Tauri app
         shell: bash
         run: pnpm tauri build
+        # @TODO Support these macos targets
+        # tauri build --target universal-apple-darwin # produces a universal macOS binary
+        # tauri build --target x86_64-apple-darwin # targets Intel-based machines
+        # tauri build --target aarch64-apple-darwin # targets Apple silicon machines
 
       # Zip all files/folders in /bundle/nsis and put in /artifacts/windows-latest/
       - name: Zip assets (Windows)
