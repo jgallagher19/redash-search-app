@@ -57,10 +57,12 @@ jobs:
         with:
           node-version: "18"
 
+      # @TODO Cache the compiled python modules (not just the downloads)
       - name: Set up Python
         uses: actions/setup-python@v4
         with:
           python-version: "3.12"
+          cache: "pip"
 
       - name: Set up pip for Python
         shell: bash
@@ -123,7 +125,7 @@ jobs:
         if: startsWith(runner.os, 'Windows')
         run: |
           mkdir -p ./artifacts/windows-latest
-          powershell Compress-Archive -Path src-tauri/target/release/bundle/nsis/* -DestinationPath ./artifacts/windows-latest/windows-latest-artifacts.zip
+          Compress-Archive -Path src-tauri/target/release/bundle/nsis/* -DestinationPath ./artifacts/windows-latest/windows-latest-artifacts.zip
 
       # Zip all files/folders in /bundle/src-tauri/target/release/bundle/dmg and put in /artifacts/macos-latest/
       - name: Zip assets (macOS)
@@ -142,7 +144,7 @@ jobs:
           zip -r ./artifacts/${{ matrix.os }}/${{ matrix.os }}-artifacts.zip src-tauri/target/release/bundle/deb/*.deb
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.os }}-artifact
           path: ./artifacts/${{ matrix.os }}/${{ matrix.os }}-artifacts.zip # upload from
@@ -154,21 +156,21 @@ jobs:
     steps:
       - name: Download Linux artifact
         if: always()
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: ubuntu-latest-artifact
           path: ./artifacts/ubuntu
 
       - name: Download macOS artifact
         if: always()
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: macos-latest-artifact
           path: ./artifacts/macos
 
       - name: Download Windows artifact
         if: always()
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: windows-latest-artifact
           path: ./artifacts/windows
