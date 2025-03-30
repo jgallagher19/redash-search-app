@@ -11,6 +11,7 @@ export default function Home() {
 
   const [logs, setLogs] = useState("[ui] Listening for sidecar & network logs...");
   const [keyword, setKeyword] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isConnecting, setIsConnecting] = useState(true);
 
@@ -81,6 +82,8 @@ export default function Home() {
       return;
     }
     try {
+      // Clear any previous error message when starting a new search
+      setErrorMessage("");
       const result = await searchCSV(keyword);
       if (result?.results) {
         setSearchResults(result.results);
@@ -90,6 +93,7 @@ export default function Home() {
     } catch (error) {
       console.error("[server-response]", error);
       setLogs((prev) => prev + `\n[server-response] Error: ${error}`);
+      setErrorMessage("Search failed. Please try again later.");
     }
   };
 
@@ -184,6 +188,13 @@ export default function Home() {
               Search CSV
             </button>
           </div>
+
+          {/* Error Message */}
+          {errorMessage && (
+            <div className="bg-red-200 text-red-800 p-2 rounded mb-4">
+              {errorMessage}
+            </div>
+          )}
 
           {/* Search Results Container */}
           <div className="w-full max-w-5xl rounded-lg bg-white shadow-md p-4 border border-gray-300">
