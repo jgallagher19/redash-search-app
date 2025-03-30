@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
+import { searchCSV } from "../src/services/apiService";
 
 export default function Home() {
   const DOMAIN = "localhost";
@@ -79,13 +80,16 @@ export default function Home() {
       setLogs((prev) => prev + "\n[ui] Please enter a keyword to search.");
       return;
     }
-    const result = await apiAction(
-      `api/search?keyword=${encodeURIComponent(keyword)}`
-    );
-    if (result?.results) {
-      setSearchResults(result.results);
-      setLogs((prev) => prev + `\n[ui] Found ${result.results.length} matching rows.`);
-      setExpandedCell(null); // reset any expanded cell when new data arrives
+    try {
+      const result = await searchCSV(keyword);
+      if (result?.results) {
+        setSearchResults(result.results);
+        setLogs((prev) => prev + `\n[ui] Found ${result.results.length} matching rows.`);
+        setExpandedCell(null); // Reset any expanded cell when new data arrives.
+      }
+    } catch (error) {
+      console.error("[server-response]", error);
+      setLogs((prev) => prev + `\n[server-response] Error: ${error}`);
     }
   };
 
