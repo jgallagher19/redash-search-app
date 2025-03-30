@@ -41,12 +41,37 @@ export default function Home() {
   const [currentPage, setCurrentPage] = useState(0);
   const itemsPerPage = 40;
   const [isConnecting, setIsConnecting] = useState(true);
+  const [sortConfig, setSortConfig] = useState<{ key: string; direction: 'ascending' | 'descending' } | null>(null);
+
+  const [columnWidths, setColumnWidths] = useState<{ [key: string]: number }>({});
 
   // Track which cell is expanded (row + column).
   const [expandedCell, setExpandedCell] = useState<{
     rowIndex: number;
     colKey: string;
   } | null>(null);
+
+  const handleMouseDown = (colKey: string, e: React.MouseEvent) => {
+    e.preventDefault();
+    const startX = e.clientX;
+    const minWidth = 80;
+    const startWidth = columnWidths[colKey]
+      ? columnWidths[colKey]
+      : getDefaultColumnWidth(colKey);
+
+    const handleMouseMove = (moveEvent: MouseEvent) => {
+      const newWidth = Math.max(minWidth, startWidth + (moveEvent.clientX - startX));
+      setColumnWidths((prev) => ({ ...prev, [colKey]: newWidth }));
+    };
+
+    const handleMouseUp = () => {
+      document.removeEventListener('mousemove', handleMouseMove);
+      document.removeEventListener('mouseup', handleMouseUp);
+    };
+
+    document.addEventListener('mousemove', handleMouseMove);
+    document.addEventListener('mouseup', handleMouseUp);
+  };
 
   // ----------------------------
   // Sidecar listeners
@@ -125,6 +150,18 @@ export default function Home() {
   };
 
   // ----------------------------
+  // Handle Sorting
+  // ----------------------------
+  const handleSort = (colKey: string) => {
+    let direction: 'ascending' | 'descending' = 'ascending';
+    if (sortConfig && sortConfig.key === colKey && sortConfig.direction === 'ascending') {
+      direction = 'descending';
+    }
+    setSortConfig({ key: colKey, direction });
+    setCurrentPage(0); // Reset to first page when sorting changes
+  };
+
+  // ----------------------------
   // Toggle cell expansion
   // ----------------------------
   const toggleCellExpand = (rowIndex: number, colKey: string) => {
@@ -176,9 +213,18 @@ export default function Home() {
   // Styles for truncated vs. expanded
   // ----------------------------
   const truncateCellClasses =
-    "inline-block overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer max-w-[120px] align-top";
+    "inline-block overflow-hidden text-ellipsis whitespace-nowrap cursor-pointer align-top";
   const expandedCellClasses =
     "inline-block whitespace-normal break-words bg-yellow-100 p-1 rounded cursor-pointer align-top";
+  const isNonTruncatedColumn = (colKey: string) => {
+    return colKey.toLowerCase() === "login" || colKey.toLowerCase() === "name";
+  };
+  function getDefaultColumnWidth(colKey: string): number {
+    if (isNonTruncatedColumn(colKey)) {
+      return 150; // or another suitable default for non-truncated columns
+    }
+    return 120;
+  }
 
   return (
     <>
@@ -210,36 +256,80 @@ export default function Home() {
             />
             <button
               onClick={performSearch}
-              className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded"
+              className="mt-2 bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded transition duration-200 ease-in-out"
             >
               Search CSV
             </button>
           </div>
 
           {errorMessage && (
-            <div className="flex items-center bg-red-200 text-red-800 p-2 rounded mb-4">
+            <div className="flex items-center bg-red-200 text-red-800 p-2 rounded mb-4 shadow-md">
               <span className="mr-2">⚠️</span>
               <span>{errorMessage}</span>
             </div>
           )}
 
-
           {/* Paginated Search Results */}
           {(() => {
+            const sortedResults = sortConfig
+              ? [...searchResults].sort((a, b) => {
+                if (a[sortConfig.key] < b[sortConfig.key]) {
+                  return sortConfig.direction === 'ascending' ? -1 : 1;
+                }
+                if (a[sortConfig.key] > b[sortConfig.key]) {
+                  return sortConfig.direction === 'ascending' ? 1 : -1;
+                }
+                return 0;
+              })
+              : searchResults;
             const startIndex = currentPage * itemsPerPage;
-            const paginatedResults = searchResults.slice(startIndex, startIndex + itemsPerPage);
+            const paginatedResults = sortedResults.slice(startIndex, startIndex + itemsPerPage);
             return (
               <>
-                <div className="w-full max-w-5xl rounded-lg bg-white shadow-md p-4 border border-gray-300">
+                <div className="w-full max-w-5xl rounded-lg bg-white shadow-md p-6 border border-gray-300 my-4">
                   <h3 className="font-bold mb-2 text-gray-900">Search Results:</h3>
                   {paginatedResults.length > 0 ? (
                     <div className="overflow-x-auto">
-                      <table className="border-collapse w-full text-left text-sm text-gray-800">
+                      <table className="w-auto text-left text-sm text-gray-800">
+                        <colgroup>
+                          {Object.keys(paginatedResults[0]).map((colKey) => (
+                            <col
+                              key={colKey}
+                              style={{ width: columnWidths[colKey] ? `${columnWidths[colKey]}px` : getDefaultColumnWidth(colKey) }}
+                            />
+                          ))}
+                        </colgroup>
                         <thead>
                           <tr>
                             {Object.keys(paginatedResults[0]).map((colKey) => (
-                              <th key={colKey} className="border-b border-gray-200 px-2 py-2 bg-gray-100 font-bold">
-                                {colKey}
+                              <th
+                                key={colKey}
+                                style={{
+                                  width: columnWidths[colKey] ? `${columnWidths[colKey]}px` : getDefaultColumnWidth(colKey),
+                                  position: "relative",
+                                  minWidth: "80px"
+                                }}
+                                className="border-b border-gray-200 px-2 py-2 bg-gray-100 font-bold"
+                              >
+                                <div className="flex items-center justify-between">
+                                  <span
+                                    onClick={() => handleSort(colKey)}
+                                    className="cursor-pointer select-none"
+                                  >
+                                    {colKey}
+                                    {sortConfig && sortConfig.key === colKey && (
+                                      sortConfig.direction === 'ascending' ? ' 🔼' : ' 🔽'
+                                    )}
+                                  </span>
+                                  {/* Future UX Enhancement: Column resizing handle (temporarily hidden pending further implementation) */}
+                                  {/* <div
+                                    onMouseDown={(e) => {
+                                      e.preventDefault();
+                                      handleMouseDown(colKey, e);
+                                    }}
+                                    className="ml-1 self-stretch w-[5px] bg-[rgba(0,0,0,0.2)] cursor-col-resize"
+                                  /> */}
+                                </div>
                               </th>
                             ))}
                           </tr>
@@ -248,7 +338,7 @@ export default function Home() {
                           {paginatedResults.map((row, index) => {
                             const originalRowIndex = currentPage * itemsPerPage + index;
                             return (
-                              <tr key={originalRowIndex}>
+                              <tr key={originalRowIndex} className="odd:bg-white even:bg-gray-50">
                                 {Object.keys(row).map((colKey) => {
                                   const cellValue = String(row[colKey]);
                                   const isExpanded =
@@ -258,15 +348,23 @@ export default function Home() {
                                   return (
                                     <td
                                       key={colKey}
-                                      className="border-b border-gray-200 px-2 py-2 align-top"
+                                      className="border-b border-gray-200 px-2 py-2 align-top hover:bg-gray-100 cursor-pointer"
                                       onClick={() => toggleCellExpand(originalRowIndex, colKey)}
+                                      style={{
+                                        width: columnWidths[colKey] ? `${columnWidths[colKey]}px` : getDefaultColumnWidth(colKey),
+                                        minWidth: "80px"
+                                      }}
                                     >
                                       {isExpanded ? (
                                         <div className={expandedCellClasses}>
                                           {highlightText(cellValue, keyword)}
                                         </div>
                                       ) : (
-                                        <div className={truncateCellClasses}>
+                                        <div className={
+                                          isNonTruncatedColumn(colKey)
+                                            ? "inline-block align-top"
+                                            : truncateCellClasses
+                                        }>
                                           {highlightText(cellValue, keyword)}
                                         </div>
                                       )}
@@ -290,7 +388,7 @@ export default function Home() {
                     <button
                       onClick={() => setCurrentPage(currentPage - 1)}
                       disabled={currentPage === 0}
-                      className={`px-4 py-2 rounded ${currentPage === 0 ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white"
+                      className={`px-4 py-2 rounded ${currentPage === 0 ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white transition duration-200 ease-in-out"
                         }`}
                     >
                       Previous
@@ -301,7 +399,7 @@ export default function Home() {
                     <button
                       onClick={() => setCurrentPage(currentPage + 1)}
                       disabled={(currentPage + 1) * itemsPerPage >= searchResults.length}
-                      className={`px-4 py-2 rounded ${(currentPage + 1) * itemsPerPage >= searchResults.length ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white"
+                      className={`px-4 py-2 rounded ${(currentPage + 1) * itemsPerPage >= searchResults.length ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white transition duration-200 ease-in-out"
                         }`}
                     >
                       Next
