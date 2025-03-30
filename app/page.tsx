@@ -5,6 +5,31 @@ import { listen } from "@tauri-apps/api/event";
 import { invoke } from "@tauri-apps/api/core";
 import { searchCSV } from "../src/services/apiService";
 
+/**
+ * Splits a text string by the keyword and wraps matching parts with a highlight span.
+ * @param text The full text to process.
+ * @param keyword The search keyword.
+ * @returns JSX with the keyword parts highlighted.
+ */
+function highlightText(text: string, keyword: string): JSX.Element {
+  if (!keyword) return <>{text}</>;
+  const regex = new RegExp(`(${keyword})`, "gi");
+  const parts = text.split(regex);
+  return (
+    <>
+      {parts.map((part, index) =>
+        part.toLowerCase() === keyword.toLowerCase() ? (
+          <span key={index} className="bg-yellow-300 font-bold">
+            {part}
+          </span>
+        ) : (
+          <span key={index}>{part}</span>
+        )
+      )}
+    </>
+  );
+}
+
 export default function Home() {
   const DOMAIN = "localhost";
   const PORT = "8008";
@@ -13,6 +38,8 @@ export default function Home() {
   const [keyword, setKeyword] = useState("");
   const [errorMessage, setErrorMessage] = useState("");
   const [searchResults, setSearchResults] = useState<any[]>([]);
+  const [currentPage, setCurrentPage] = useState(0);
+  const itemsPerPage = 40;
   const [isConnecting, setIsConnecting] = useState(true);
 
   // Track which cell is expanded (row + column).
@@ -189,66 +216,101 @@ export default function Home() {
             </button>
           </div>
 
-          {/* Error Message */}
           {errorMessage && (
-            <div className="bg-red-200 text-red-800 p-2 rounded mb-4">
-              {errorMessage}
+            <div className="flex items-center bg-red-200 text-red-800 p-2 rounded mb-4">
+              <span className="mr-2">⚠️</span>
+              <span>{errorMessage}</span>
             </div>
           )}
 
-          {/* Search Results Container */}
-          <div className="w-full max-w-5xl rounded-lg bg-white shadow-md p-4 border border-gray-300">
-            <h3 className="font-bold mb-2 text-gray-900">Search Results:</h3>
 
-            {searchResults.length > 0 ? (
-              // We wrap the table in an overflow-x-auto container
-              <div className="overflow-x-auto">
-                <table className="border-collapse w-full text-left text-sm text-gray-800">
-                  <thead>
-                    <tr>
-                      {Object.keys(searchResults[0]).map((colKey) => (
-                        <th
-                          key={colKey}
-                          className="border-b border-gray-200 px-2 py-2 bg-gray-100 font-bold"
-                        >
-                          {colKey}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {searchResults.map((row, rowIndex) => (
-                      <tr key={rowIndex}>
-                        {Object.keys(row).map((colKey) => {
-                          const cellValue = String(row[colKey]);
-                          const isExpanded =
-                            expandedCell &&
-                            expandedCell.rowIndex === rowIndex &&
-                            expandedCell.colKey === colKey;
+          {/* Paginated Search Results */}
+          {(() => {
+            const startIndex = currentPage * itemsPerPage;
+            const paginatedResults = searchResults.slice(startIndex, startIndex + itemsPerPage);
+            return (
+              <>
+                <div className="w-full max-w-5xl rounded-lg bg-white shadow-md p-4 border border-gray-300">
+                  <h3 className="font-bold mb-2 text-gray-900">Search Results:</h3>
+                  {paginatedResults.length > 0 ? (
+                    <div className="overflow-x-auto">
+                      <table className="border-collapse w-full text-left text-sm text-gray-800">
+                        <thead>
+                          <tr>
+                            {Object.keys(paginatedResults[0]).map((colKey) => (
+                              <th key={colKey} className="border-b border-gray-200 px-2 py-2 bg-gray-100 font-bold">
+                                {colKey}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {paginatedResults.map((row, index) => {
+                            const originalRowIndex = currentPage * itemsPerPage + index;
+                            return (
+                              <tr key={originalRowIndex}>
+                                {Object.keys(row).map((colKey) => {
+                                  const cellValue = String(row[colKey]);
+                                  const isExpanded =
+                                    expandedCell &&
+                                    expandedCell.rowIndex === originalRowIndex &&
+                                    expandedCell.colKey === colKey;
+                                  return (
+                                    <td
+                                      key={colKey}
+                                      className="border-b border-gray-200 px-2 py-2 align-top"
+                                      onClick={() => toggleCellExpand(originalRowIndex, colKey)}
+                                    >
+                                      {isExpanded ? (
+                                        <div className={expandedCellClasses}>
+                                          {highlightText(cellValue, keyword)}
+                                        </div>
+                                      ) : (
+                                        <div className={truncateCellClasses}>
+                                          {highlightText(cellValue, keyword)}
+                                        </div>
+                                      )}
+                                    </td>
+                                  );
+                                })}
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  ) : (
+                    <p className="italic text-gray-700">No results yet.</p>
+                  )}
+                </div>
 
-                          return (
-                            <td
-                              key={colKey}
-                              className="border-b border-gray-200 px-2 py-2 align-top"
-                              onClick={() => toggleCellExpand(rowIndex, colKey)}
-                            >
-                              {isExpanded ? (
-                                <div className={expandedCellClasses}>{cellValue}</div>
-                              ) : (
-                                <div className={truncateCellClasses}>{cellValue}</div>
-                              )}
-                            </td>
-                          );
-                        })}
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-            ) : (
-              <p className="italic text-gray-700">No results yet.</p>
-            )}
-          </div>
+                {/* Pagination Controls */}
+                {searchResults.length > itemsPerPage && (
+                  <div className="flex items-center justify-between mt-4 w-full max-w-5xl">
+                    <button
+                      onClick={() => setCurrentPage(currentPage - 1)}
+                      disabled={currentPage === 0}
+                      className={`px-4 py-2 rounded ${currentPage === 0 ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white"
+                        }`}
+                    >
+                      Previous
+                    </button>
+                    <span>
+                      Page {currentPage + 1} of {Math.ceil(searchResults.length / itemsPerPage)}
+                    </span>
+                    <button
+                      onClick={() => setCurrentPage(currentPage + 1)}
+                      disabled={(currentPage + 1) * itemsPerPage >= searchResults.length}
+                      className={`px-4 py-2 rounded ${(currentPage + 1) * itemsPerPage >= searchResults.length ? "bg-gray-300 cursor-not-allowed" : "bg-blue-500 hover:bg-blue-600 text-white"
+                        }`}
+                    >
+                      Next
+                    </button>
+                  </div>
+                )}
+              </>
+            );
+          })()}
 
           {/* Uncomment below to show logs if desired */}
           {/*
