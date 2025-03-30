@@ -6,11 +6,20 @@ import threading
 import json
 import requests
 import csv
+import logging
+
 from io import StringIO
 from typing import TypedDict
 from fastapi import FastAPI, Body, Query
+from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from uvicorn import Config, Server
+
+logging.basicConfig(
+    level=logging.INFO,
+    format='[%(levelname)s] %(asctime)s - %(message)s',
+    datefmt='%Y-%m-%d %H:%M:%S'
+)
 
 PORT_API = 8008
 server_instance = None
@@ -44,10 +53,18 @@ def load_config():
 # CSV fetching logic
 def fetch_csv_data():
     config = load_config()
-    response = requests.get(config['redash_csv_url'])
-    response.raise_for_status()
-    reader = csv.DictReader(StringIO(response.text))
-    return list(reader)
+    if config.get("use_mock_data"):
+        mock_path = config.get("mock_csv_path")
+        if not os.path.exists(mock_path):
+            raise FileNotFoundError(f"Mock CSV file not found at {mock_path}")
+        with open(mock_path, mode='r', encoding='utf-8') as file:
+            reader = csv.DictReader(file)
+            return list(reader)
+    else:
+        response = requests.get(config['redash_csv_url'])
+        response.raise_for_status()
+        reader = csv.DictReader(StringIO(response.text))
+        return list(reader)
 
 # Your provided CSV search logic (copied from searcher.py)
 def search_data(data, keyword, columns=None, exact=False):
@@ -84,8 +101,12 @@ def api_search(keyword: str = Query(...), exact: bool = False):
         data = fetch_csv_data()
         results = search_data(data, keyword, exact=exact)
         return {"results": results, "count": len(results)}
+    except FileNotFoundError as e:
+        logging.error(f"File not found: {e}")
+        raise HTTPException(status_code=500, detail="Data file not found.")
     except Exception as e:
-        return {"error": str(e)}
+        logging.error(f"Unexpected error: {e}")
+        raise HTTPException(status_code=500, detail="Internal server error.")
 
 # Simple health check endpoint
 @app.get("/api/health")
@@ -102,25 +123,25 @@ def start_api_server(**kwargs):
     port = kwargs.get("port", PORT_API)
     try:
         if server_instance is None:
-            print("[sidecar] Starting API server...", flush=True)
+            logging.info("[sidecar] Starting API server...")
             config = Config(app, host="0.0.0.0", port=port, log_level="info")
             server_instance = Server(config)
             asyncio.run(server_instance.serve())
         else:
-            print("[sidecar] Server instance already running.", flush=True)
+            logging.info("[sidecar] Server instance already running.")
     except Exception as e:
-        print(f"[sidecar] Error starting server: {e}", flush=True)
+        logging.error(f"[sidecar] Error starting server: {e}")
 
 def stdin_loop():
-    print("[sidecar] Waiting for commands...", flush=True)
+    logging.info("[sidecar] Waiting for commands...")
     while True:
         user_input = sys.stdin.readline().strip()
         match user_input:
             case "sidecar shutdown":
-                print("[sidecar] Received 'sidecar shutdown' command.", flush=True)
+                logging.info("[sidecar] Received 'sidecar shutdown' command.")
                 kill_process()
             case _:
-                print(f"[sidecar] Invalid command [{user_input}].", flush=True)
+                logging.warning(f"[sidecar] Invalid command [{user_input}].")
 
 def start_input_thread():
     try:

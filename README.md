@@ -53,6 +53,20 @@ Originally adapted from the example-tauri-python-server-sidecar by dieharders, i
 
 🚦 Getting Started
 
+## Configuration Setup
+
+To avoid confusion, copy the provided `config.example.json` into a new `config.json`, updating any fields as required.
+
+- For demo purposes, use the provided mock data.
+- To connect to real data, replace placeholder fields with your actual Redash details.
+
+Example:
+
+```bash
+cd src/backends
+cp config.example.json config.json
+```
+
 ⚙️ Install Dependencies
 
 Install both frontend and backend dependencies with:

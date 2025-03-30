@@ -1,0 +1,6 @@
+{
+    "redash_api_key": "your_redash_api_key_here",
+    "redash_csv_url": "https://your_redash_instance_here/query.csv",
+    "use_mock_data": true,
+    "mock_csv_path": "mock_data/example.csv"
+}

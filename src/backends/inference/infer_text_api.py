@@ -1,3 +1,4 @@
+import logging
 from fastapi import HTTPException
 
 
@@ -5,14 +6,11 @@ from fastapi import HTTPException
 def completions(data):
     try:
         prompt: str = data["prompt"]
-        print(f"[server] Sent prompt: '{prompt}'", flush=True)
+        logging.info(f"[server] Sent prompt: '{prompt}'")
         # Example response
         return {"message": f"query: [{prompt}]\nanswer: [...]"}
     except KeyError:
-        print(
-            f"[server] Error: Expected format {{'prompt':'text string here'}}",
-            flush=True,
-        )
+        logging.error("[server] Error: Expected format {'prompt':'text string here'}")
         raise HTTPException(
             status_code=400, detail="Invalid JSON format: 'prompt' key not found"
         )
