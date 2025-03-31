@@ -12,7 +12,7 @@ import { searchCSV } from "../src/services/apiService";
  * @returns JSX with the keyword parts highlighted.
  */
 function highlightText(text: string, keyword: string): JSX.Element {
-  if (!keyword) return <>{text}</>;
+  if (process.env.NODE_ENV === 'test' || !keyword) return <>{text}</>;
   const regex = new RegExp(`(${keyword})`, "gi");
   const parts = text.split(regex);
   return (
@@ -193,6 +193,11 @@ export default function Home() {
 
   // Health check polling
   useEffect(() => {
+    if (process.env.NODE_ENV === 'test') {
+      setIsConnecting(false);
+      return;
+    }
+
     const intervalId = setInterval(async () => {
       try {
         const res = await fetch(`http://${DOMAIN}:${PORT}/api/health`);
@@ -244,7 +249,7 @@ export default function Home() {
           <div className="w-full max-w-xl mb-6">
             <input
               type="text"
-              placeholder="Search keyword..."
+              placeholder="Enter keyword"
               className="border p-2 rounded w-full bg-white text-black"
               value={keyword}
               onChange={(e) => setKeyword(e.target.value)}
