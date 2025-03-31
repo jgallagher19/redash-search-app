@@ -201,9 +201,9 @@ Compiled artifacts are located at:
 
 ---
 
-### License
+### License and Credits
 
-- Forked from `example-tauri-python-server-sidecar` under Apache License 2.0.
+- This project is forked from [dieharders/example-tauri-v2-python-server-sidecar](https://github.com/dieharders/example-tauri-v2-python-server-sidecar) under the Apache License 2.0.
 - Custom modifications by Jack Gallagher are licensed under the MIT License.
 
 ---
@@ -232,3 +232,12 @@ Below is a quick summary of issues resolved during development:
 
 7. **Verified Dev and Production Builds**  
    Confirmed that the sidecar runs in dev mode (`npm run tauri dev`) and that the production build includes the correct config and CSV file references.
+
+---
+
+## Known Issues
+
+- **Production Build Issue (Tauri & Python Sidecar)**  
+  Currently, the app fully functions in development mode (`npm run tauri dev`), but there is an ongoing issue packaging the Python backend executable (`sidecar`) with Tauri for production (`npm run tauri build`). The executable is not recognized or launched correctly in bundled mode.
+
+  **Current status:** Troubleshooting and actively investigating the PyInstaller and Tauri configuration. For now, please use the development environment for evaluation and demonstration purposes.
