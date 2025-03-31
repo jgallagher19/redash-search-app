@@ -14,6 +14,7 @@ from fastapi import FastAPI, Body, Query
 from fastapi import HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from uvicorn import Config, Server
+from config import load_config
 
 logging.basicConfig(
     level=logging.INFO,
@@ -37,27 +38,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Load configuration from config.json
-def load_config():
-    # Correctly handles PyInstaller bundles
-    if hasattr(sys, '_MEIPASS'):
-        base_path = sys._MEIPASS
-    else:
-        base_path = os.path.abspath(".")
-
-    config_path = os.path.join(base_path, 'config.json')
-
-    with open(config_path) as f:
-        return json.load(f)
-
 # CSV fetching logic
 def fetch_csv_data():
-    config = load_config()
+    config, base_path = load_config()
     if config.get("use_mock_data"):
-        mock_path = config.get("mock_csv_path")
+        mock_csv_relative = config["mock_csv_path"]  # e.g. "mock_data/example.csv"
+        mock_path = os.path.join(base_path, mock_csv_relative)
         if not os.path.exists(mock_path):
-            raise FileNotFoundError(f"Mock CSV file not found at {mock_path}")
-        with open(mock_path, mode='r', encoding='utf-8') as file:
+            raise FileNotFoundError(f"Mock CSV file not found at: {mock_path}")
+        with open(mock_path, mode="r", encoding="utf-8") as file:
             reader = csv.DictReader(file)
             return list(reader)
     else:
@@ -152,5 +141,4 @@ def start_input_thread():
         print("[sidecar] Failed to start input handler.", flush=True)
 
 if __name__ == "__main__":
-    start_input_thread()
     start_api_server()

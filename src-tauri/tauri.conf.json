@@ -12,7 +12,7 @@
     "copyright": "",
     "targets": "all",
     "externalBin": [
-      "bin/api/main"
+      "bin/api/main-aarch64-apple-darwin"
     ],
     "icon": [
       "icons/32x32.png",
