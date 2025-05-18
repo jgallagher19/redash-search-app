@@ -37,8 +37,8 @@ Originally adapted from the example-tauri-python-server-sidecar by dieharders, i
 .
 ├── app/                 # Next.js frontend source code (TypeScript/React)
 ├── src/backends/        # Python backend (FastAPI)
-│   ├── config.json      # Configuration (API URLs, etc.)
-│   └── main.py          # API endpoints & logic
+│   ├── config.json.example  # Template configuration
+│   └── main.py          # API entry point used by the sidecar
 ├── src-tauri/
 │   ├── bin/api          # Compiled Python sidecar executables
 │   ├── src/main.rs      # Tauri (Rust) main application logic
@@ -58,6 +58,9 @@ Originally adapted from the example-tauri-python-server-sidecar by dieharders, i
 Install both frontend and backend dependencies with:
 
 pnpm install-reqs
+
+Copy `src/backends/config.json.example` to `src/backends/config.json` and
+update the `redash_csv_url` value to point at your CSV export.
 
 	•	Frontend-only:
 
@@ -102,6 +105,12 @@ pnpm build:sidecar-linux
 
 To build a production-ready version:
 
+pnpm tauri build
+
+In sequence:
+
+pnpm install-reqs
+pnpm build:sidecar-<platform>
 pnpm tauri build
 
 Your compiled installers and executables are located in:
